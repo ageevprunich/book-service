@@ -7,7 +7,6 @@ import { useAuthStore } from "@/store/authStore";
 
 export const BooksPage = () => {
     const user = useAuthStore((state) => state.user);
-
     const [books, setBooks] = useState<Book[]>([]);
     const [search, setSearch] = useState("");
     const [sortAsc, setSortAsc] = useState(true);
@@ -18,11 +17,12 @@ export const BooksPage = () => {
 
     const navigate = useNavigate();
 
+    // Завантажуємо всі книги
     useEffect(() => {
-        // Завантажуємо всі книги з Firestore
         booksService.getAllBooks().then(setBooks);
     }, []);
 
+    // Фільтруємо, сортуємо і пагінуємо
     useEffect(() => {
         const { paginated, totalPages } = getFilteredSortedPaginatedBooks({
             books,
@@ -34,6 +34,36 @@ export const BooksPage = () => {
         setDisplayBooks(paginated);
         setTotalPages(totalPages);
     }, [books, search, sortAsc, currentPage]);
+
+    // Видалення книги (для адміна)
+    const handleDeleteBook = (bookId: string) => {
+        if (!user) return;
+        booksService.deleteBook(bookId)
+            .then(() => setBooks(books.filter(b => b.id !== bookId)))
+            .catch(err => console.error("Помилка видалення книги:", err));
+    };
+
+    // Редагування книги (для адміна)
+    const handleEditBook = (book: Book) => {
+        if (!user) return;
+
+        // Простий спосіб: prompt для редагування (можна замінити на модал або форму)
+        const name = prompt("Назва книги", book.name);
+        const author = prompt("Автор", book.author);
+        const photo = prompt("Фото (URL)", book.photo || "");
+
+        if (!name || !author) return;
+
+        booksService.updateBook(book.id!, {
+            name,
+            author,
+            photo: photo || undefined   
+        }, user)
+            .then(updatedBook => {
+                setBooks(books.map(b => b.id === updatedBook.id ? updatedBook : b));
+            })
+            .catch(err => console.error("Помилка редагування книги:", err));
+    };
 
     return (
         <div className="p-4 flex flex-col gap-4">
@@ -67,10 +97,12 @@ export const BooksPage = () => {
                         author={book.author}
                         photo={book.photo}
                         userId={book.userId}
-                        currentUser={user}      
+                        currentUser={user}
                         onClick={() => navigate(`/books/${book.id}`)}
+                        // Передаємо кнопки лише для адміна
+                        onDelete={user?.role === "admin" ? () => handleDeleteBook(book.id!) : undefined}
+                        onEdit={user?.role === "admin" ? () => handleEditBook(book) : undefined}
                     />
-                    
                 ))}
             </div>
 
@@ -78,8 +110,7 @@ export const BooksPage = () => {
                 {Array.from({ length: totalPages }, (_, i) => (
                     <button
                         key={i}
-                        className={`px-3 py-1 border rounded ${currentPage === i + 1 ? "bg-blue-500 text-white" : ""
-                            }`}
+                        className={`px-3 py-1 border rounded ${currentPage === i + 1 ? "bg-blue-500 text-white" : ""}`}
                         onClick={() => setCurrentPage(i + 1)}
                     >
                         {i + 1}

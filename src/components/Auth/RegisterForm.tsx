@@ -15,7 +15,10 @@ export function RegisterForm() {
         setError(null);
         try {
             const userCredential = await register(email, password, fullName);
-            setUser(userCredential.user);
+            setUser({
+                ...userCredential.user,
+                role: "user",
+            });
         } catch (err: any) {
             setError(err.message || "Помилка при реєстрації");
         }

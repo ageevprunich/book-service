@@ -4,6 +4,7 @@ import { Home } from "./pages/Home";
 import { MeBooks } from "@/pages/MeBooks";
 import { BooksPage } from "@/pages/BooksPage";
 import { BookDetailPage } from "@/pages/BookDetails";
+import { AdminPage } from "@/pages/AdminPage";
 import { auth } from "@/firebase/firebase";
 import { useAuthStore } from "@/store/authStore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -50,6 +51,20 @@ function App() {
         />
         <Route path="/books" element={<BooksPage />} />
         <Route path="/books/:id" element={<BookDetailPage />} />
+        <Route
+          path="/admin"
+          element={
+            user === null ? (
+              <div>Loading...</div> // чекаємо, поки користувач підвантажиться
+            ) : user.role === "admin" ? (
+              <AdminPage />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
 
