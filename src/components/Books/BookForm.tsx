@@ -1,13 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface BookFormProps {
     onSubmit: (name: string, author: string, photo?: string) => void;
+    initialName?: string;
+    initialAuthor?: string;
+    initialPhoto?: string;
 }
 
-export const BookForm = ({ onSubmit }: BookFormProps) => {
-    const [name, setName] = useState("");
-    const [author, setAuthor] = useState("");
-    const [photo, setPhoto] = useState("");
+export const BookForm = ({ onSubmit, initialName = "", initialAuthor = "", initialPhoto = "" }: BookFormProps) => {
+    const [name, setName] = useState(initialName);
+    const [author, setAuthor] = useState(initialAuthor);
+    const [photo, setPhoto] = useState(initialPhoto);
+
+    useEffect(() => {
+        setName(initialName);
+        setAuthor(initialAuthor);
+        setPhoto(initialPhoto);
+    }, [initialName, initialAuthor, initialPhoto]); // <-- синхронізація при редагуванні
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -45,7 +54,7 @@ export const BookForm = ({ onSubmit }: BookFormProps) => {
                 type="submit"
                 className="border border-blue-500 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
             >
-                Додати книгу
+                {initialName ? "Зберегти зміни" : "Додати книгу"} {/* змінюємо текст кнопки */}
             </button>
         </form>
     );

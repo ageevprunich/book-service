@@ -1,8 +1,15 @@
 import { create } from "zustand";
 
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  fullName?: string;
+  role: string;
+}
+
 interface AuthState {
-  user: any | null;
-  setUser: (user: any) => void;
+  user: AppUser | null;
+  setUser: (user: AppUser | null) => void;
   logout: () => void;
 }
 

@@ -13,8 +13,8 @@ export function LoginForm() {
         e.preventDefault();
         setError(null);
         try {
-            const userCredential = await login(email, password);
-            setUser(userCredential.user);
+            const userData = await login(email, password); // user + fullName
+            setUser(userData);
         } catch (err: any) {
             setError(err.message || "Помилка при вході");
         }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export function RegisterForm() {
     const setUser = useAuthStore((state) => state.setUser);
+    const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -13,7 +14,7 @@ export function RegisterForm() {
         e.preventDefault();
         setError(null);
         try {
-            const userCredential = await register(email, password);
+            const userCredential = await register(email, password, fullName);
             setUser(userCredential.user);
         } catch (err: any) {
             setError(err.message || "Помилка при реєстрації");
@@ -23,6 +24,14 @@ export function RegisterForm() {
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-80">
             {error && <p className="text-red-500">{error}</p>}
+            <input
+                type="text"
+                placeholder="Ім'я"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="border rounded px-3 py-2"
+                required
+            />
             <input
                 type="email"
                 placeholder="Email"
