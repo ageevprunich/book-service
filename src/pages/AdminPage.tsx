@@ -23,8 +23,9 @@ export const AdminPage = () => {
         userService.getAllUsers().then(setUsers); // створимо метод у сервісі
     }, []);
 
-    const handleAddUser = (fullName: string, email: string, role: "admin" | "user") => {
-        userService.addUser({ fullName, email, role }).then((newUser) => setUsers([...users, newUser]));
+    const handleAddUser = (fullName: string, email: string, role: "admin" | "user", password?: string) => {
+        if (!password) return; // or handle error/validation as needed
+        userService.addUser({ fullName, email, role, password }).then((newUser) => setUsers([...users, newUser]));
     };
 
     const handleDeleteUser = (uid: string) => {
@@ -48,6 +49,7 @@ export const AdminPage = () => {
                 initialFullName={editingUser?.fullName ?? ""}
                 initialEmail={editingUser?.email ?? ""}
                 initialRole={editingUser?.role as "user" | "admin" ?? "user"}
+                // requirePassword={!editingUser}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

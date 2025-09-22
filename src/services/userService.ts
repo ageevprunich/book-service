@@ -1,31 +1,33 @@
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getDoc, getDocs, updateDoc, setDoc, deleteDoc, doc, collection } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { AppUser } from "@/store/authStore";
-
-const usersCollection = collection(db, "users");
 
 export const userService = {
-    // Отримати всіх користувачів
-    async getAllUsers(): Promise<AppUser[]> {
-        const snapshot = await getDocs(usersCollection);
-        return snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as AppUser));
-    },
+  async addUser({ fullName, email, role, password }: { fullName: string; email: string; role: "user" | "admin"; password: string }) {
+    const auth = getAuth();
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
 
-    // Додати користувача
-    async addUser(user: Omit<AppUser, "uid">): Promise<AppUser> {
-        const docRef = await addDoc(usersCollection, user);
-        return { uid: docRef.id, ...user };
-    },
+    // Додаємо користувача у Firestore
+    await setDoc(doc(db, "users", uid), { fullName, email, role });
 
-    // Оновити користувача
-    async updateUser(uid: string, data: Partial<AppUser>): Promise<AppUser> {
-        const docRef = doc(db, "users", uid);
-        await updateDoc(docRef, data);
-        return { uid, ...data } as AppUser;
-    },
+    return { uid, fullName, email, role };
+  },
 
-    // Видалити користувача
-    async deleteUser(uid: string) {
-        await deleteDoc(doc(db, "users", uid));
-    },
+  async getAllUsers() {
+    const snapshot = await getDocs(collection(db, "users"));
+    return snapshot.docs.map(doc => ({ uid: doc.id, ...(doc.data() as { fullName: string; email: string; role: "user" | "admin" }) }));
+  },
+
+  async updateUser(uid: string, data: Partial<{ fullName: string; email: string; role: "user" | "admin" }>) {
+    await updateDoc(doc(db, "users", uid), data);
+    const updated = await getDoc(doc(db, "users", uid));
+    return { uid: updated.id, ...(updated.data() as { fullName: string; email: string; role: "user" | "admin" }) };
+  },
+
+  async deleteUser(uid: string) {
+    // Firebase Auth видалення користувача без серверної частини не зробити з фронтенду
+    // Тільки видаляємо з Firestore
+    await deleteDoc(doc(db, "users", uid));
+  }
 };
